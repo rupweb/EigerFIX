@@ -10,6 +10,7 @@ public class Pricer
 	static ArrayList<Price> EURGBP = new ArrayList<Price>();
 	static ArrayList<Price> USDJPY = new ArrayList<Price>();
 	static ArrayList<Price> EURJPY = new ArrayList<Price>();
+	static ArrayList<Price> AUDUSD = new ArrayList<Price>();
 		
 	static void setPrice(Price providerQuote)
 	{
@@ -27,6 +28,8 @@ public class Pricer
 				USDJPY.add(providerQuote);	
 			case "EURJPY":
 				EURJPY.add(providerQuote);
+			case "AUDUSD":
+				AUDUSD.add(providerQuote);
 		}
 		
     	System.out.println("setPrice add: " + 
@@ -56,6 +59,8 @@ public class Pricer
 					p = USDJPY.get(USDJPY.size() - 1);
 				case "EURJPY":
 					p = EURJPY.get(EURJPY.size() - 1);
+				case "AUDUSD":
+					p = AUDUSD.get(GBPUSD.size() - 1);
 			}	
 		}
 		catch (Exception e)
