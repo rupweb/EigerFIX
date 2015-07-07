@@ -5,38 +5,50 @@ import quickfix.*;
 public class EigerFIX 
 {
     // static Thread t;
+	
+	// Setup logging
+	static Log l = new Log();
 
 	public static void main(String[] args) throws Exception 
     {
     	System.out.println("In main()");
-
-    	// The freaking windows newline in logs requires correct separator
-    	System.setProperty("line.separator", "\r\n");
+    	
+    	// Setup system out and error
+    	// System.setOut(new PrintStream(new File("System.Out")));
+    	// System.setOut(new PrintStream(new File("System.Err")));
     	
     	// Set up client side and provider side Disruptors
-    	DisruptorClientSide clientSideDisruptor = new DisruptorClientSide(); 
-    	DisruptorProviderSide providersideDisruptor = new DisruptorProviderSide(); 
+    	DisruptorFromClients disruptorFromClients = new DisruptorFromClients();
+    	DisruptorToProviders disruptorToProviders = new DisruptorToProviders();
+    	DisruptorFromProviders disruptorFromProviders = new DisruptorFromProviders();
+    	DisruptorToClients disruptorToClients = new DisruptorToClients();
     	
 		// Start FIX (client side) Acceptor
     	// It cannot publish to the client side disruptor until the initiator is able to be invoked
-		Acceptor a = startAcceptor(args[0], clientSideDisruptor);
+		Acceptor a = startAcceptor(args[0], disruptorFromClients);
 		
 		// Start FIX (provider side) Initiator
 		// It cannot publish to the provider side disruptor until the acceptor is able to be invoked
-		Initiator i = startInitiator(args[1], providersideDisruptor);
+		Initiator i = startInitiator(args[1], disruptorFromProviders);
     	
 		// Start the disruptors and pass in the acceptor and initiator
 		// Publishing to the disruptors can then begin
 		try
 	    {        
-	    	clientSideDisruptor.start(i);
-	    	providersideDisruptor.start(a);
+			// Watch order of starts
+			disruptorToProviders.start(i);
+			disruptorFromClients.start(a, disruptorToProviders);
+	    	disruptorToClients.start(a);
+	    	disruptorFromProviders.start(i, disruptorToClients);
 	    	System.out.println("Eiger Disruptors started");
 	    }
 	    catch (Exception e)
 	    {
-	    	clientSideDisruptor.stop();
-	    	providersideDisruptor.stop();
+	    	// Doesn't matter order of stops?
+	    	disruptorFromClients.stop();
+			disruptorToProviders.stop();
+	    	disruptorFromProviders.stop();
+	    	disruptorToClients.stop();
 	    	System.out.println("==DISRUPTORS ERROR==");                
             System.out.println(e.toString());
 	    }
@@ -45,7 +57,7 @@ public class EigerFIX
         System.out.println("Out Main()");    	
     }
 
-	static Acceptor startAcceptor(String arg, DisruptorClientSide clientSideDisruptor)
+	static Acceptor startAcceptor(String arg, DisruptorFromClients disruptorFromClients)
     {
         Acceptor a = null;
         
@@ -57,7 +69,7 @@ public class EigerFIX
         	System.out.println("settings: " + settings.toString());
             // Logging.LogInfo("settings: " + settings.toString());
 
-			Application app = new FixAcceptorEngine(clientSideDisruptor);
+			Application app = new FixAcceptorEngine(disruptorFromClients);
 			MessageStoreFactory storeFactory = new FileStoreFactory(settings); 
 			LogFactory logFactory = new FileLogFactory(settings); 
 			MessageFactory messageFactory = new DefaultMessageFactory(); 
@@ -75,7 +87,7 @@ public class EigerFIX
 		return a;
     }
         
-	static Initiator startInitiator(String arg, DisruptorProviderSide providerSideDisruptor)
+	static Initiator startInitiator(String arg, DisruptorFromProviders disruptorFromProviders)
     {
         Initiator i = null;
         
@@ -87,7 +99,7 @@ public class EigerFIX
 	    	System.out.println("settings: " + settings.toString());
 	        // Logging.LogInfo("settings: " + settings.toString());
 	
-			Application app = new FixInitiatorEngine(providerSideDisruptor);
+			Application app = new FixInitiatorEngine(disruptorFromProviders);
 			MessageStoreFactory storeFactory = new FileStoreFactory(settings); 
 			LogFactory logFactory = new FileLogFactory(settings); 
 			MessageFactory messageFactory = new DefaultMessageFactory(); 

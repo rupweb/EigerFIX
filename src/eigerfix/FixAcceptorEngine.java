@@ -1,19 +1,20 @@
 package eigerfix;
 
 import quickfix.*;
+import quickfix.field.MsgType;
 
 public class FixAcceptorEngine extends MessageCracker implements Application
 {
     // There's only 1 FIX session here, so global this to be used outside this class...
 	public Session _market_data_session = null;
 	public Session _trading_session = null;
-	private DisruptorClientSide d;
+	private DisruptorFromClients d;
 
 	// Constructor
-	public FixAcceptorEngine(DisruptorClientSide clientSideDisruptor) throws Exception
+	public FixAcceptorEngine(DisruptorFromClients disruptorFromClients) throws Exception
 	{
         System.out.println("In FixAcceptorEngine");
-        this.d = clientSideDisruptor;
+        this.d = disruptorFromClients;
 	}
 	
     public void fromApp(Message msg, SessionID s) throws UnsupportedMessageType, FieldNotFound, IncorrectTagValue
@@ -30,9 +31,16 @@ public class FixAcceptorEngine extends MessageCracker implements Application
         System.out.println(Utils.now() + "ACCEPTOR: ToApp " + msg.getClass() + " " + msg.toString());     
     }
 
-    public void fromAdmin(Message msg, SessionID s)
+    public void fromAdmin(Message msg, SessionID s) throws FieldNotFound
     {
         System.out.println(Utils.now() + "ACCEPTOR: FromAdmin " + msg.getClass() + " " + msg.toString());
+        
+        // fromAdmin takes admin messages from initiators. Error messages need to be caught by the FIX monitor
+        if (msg.getHeader().getString(MsgType.FIELD).equals(MsgType.REJECT))
+        {
+            System.out.println(Utils.now() + "Reject from: " + s.toString());
+            d.Publish(msg, s);
+        }
     }
 
     public void onCreate(SessionID s) 
@@ -78,15 +86,27 @@ public class FixAcceptorEngine extends MessageCracker implements Application
 
     public void onMessage(quickfix.fix44.Reject msg, SessionID s)
     {
-        System.out.println(Utils.now() + "Reject from: " + s.toString());
+        System.out.println(Utils.ANSI_RED + Utils.now() + "Reject from: " + s.toString() + Utils.ANSI_RESET);
         d.Publish(msg, s);
     }
 
+	public void onMessage(quickfix.fix43.QuoteRequestReject msg, SessionID s)
+	{
+        System.out.println(Utils.now() + "QuoteRequestReject from: " + s.toString());
+        d.Publish(msg, s);
+	}    
+    
 	public void onMessage(quickfix.fix44.QuoteRequestReject msg, SessionID s)
 	{
         System.out.println(Utils.now() + "QuoteRequestReject from: " + s.toString());
         d.Publish(msg, s);
 	}
+	
+	public void onMessage(quickfix.fix43.Quote msg, SessionID s)
+	{
+        System.out.println(Utils.now() + "Quote from: " + s.toString());
+        d.Publish(msg, s);
+	}	
 	
 	public void onMessage(quickfix.fix44.Quote msg, SessionID s)
 	{
@@ -94,6 +114,12 @@ public class FixAcceptorEngine extends MessageCracker implements Application
         d.Publish(msg, s);
 	}
 
+    public void onMessage(quickfix.fix43.QuoteRequest msg, SessionID s)
+    {
+        System.out.println(Utils.now() + "QuoteRequest from: " + s.toString());
+        d.Publish(msg, s);
+    }
+	
     public void onMessage(quickfix.fix44.QuoteRequest msg, SessionID s)
     {
         System.out.println(Utils.now() + "QuoteRequest from: " + s.toString());
@@ -112,25 +138,33 @@ public class FixAcceptorEngine extends MessageCracker implements Application
         d.Publish(msg, s);
 	}	
 	
-	public void onMessage(quickfix.fix44.MarketDataSnapshotFullRefresh msg, SessionID s) 
+	public void onMessage(quickfix.fix43.MarketDataSnapshotFullRefresh msg, SessionID s) 
 	{
         System.out.println(Utils.now() + "MarketDataSnapshot from: " + s.toString());
         d.Publish(msg, s);
 	}
 	
-	public void onMessage(quickfix.fix44.MarketDataIncrementalRefresh msg, SessionID s) 
+	public void onMessage(quickfix.fix43.MarketDataIncrementalRefresh msg, SessionID s) 
 	{
         System.out.println(Utils.now() + "MarketDataRefresh from: " + s.toString());
+        d.Publish(msg, s);
 	}
 	
-	public void onMessage(quickfix.fix44.MarketDataRequestReject msg, SessionID s) 
+	public void onMessage(quickfix.fix43.MarketDataRequestReject msg, SessionID s) 
 	{
         System.out.println(Utils.now() + "MarketDataReject from: " + s.toString());
+        d.Publish(msg, s);
 	}
-		
+	
+	public void onMessage(quickfix.fix43.BusinessMessageReject msg, SessionID s) 
+	{
+        System.out.println(Utils.ANSI_RED + Utils.now() + "BusinessMessageReject from: " + s.toString() + Utils.ANSI_RESET);
+        d.Publish(msg, s);
+	}	
+	
 	public void onMessage(quickfix.fix44.BusinessMessageReject msg, SessionID s) 
 	{
-        System.out.println(Utils.now() + "BusinessMessageReject from: " + s.toString());
+        System.out.println(Utils.ANSI_RED + Utils.now() + "BusinessMessageReject from: " + s.toString() + Utils.ANSI_RESET);
         d.Publish(msg, s);
 	}
 	
@@ -145,6 +179,12 @@ public class FixAcceptorEngine extends MessageCracker implements Application
         System.out.println(Utils.now() + "OrderCancelReject from: " + s.toString());
         d.Publish(msg, s);
     }
+    
+    public void onMessage(quickfix.fix44.NewOrderSingle msg, SessionID s)
+    {
+        System.out.println(Utils.now() + "NewOrderSingle from: " + s.toString());
+        d.Publish(msg, s);
+    }    
     
     public void onMessage(quickfix.fix44.ExecutionReport msg, SessionID s) 
     {

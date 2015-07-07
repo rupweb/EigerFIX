@@ -39,19 +39,18 @@ public class DisruptorToClientsLogic implements EventHandler<FixEvent>
     public void onEvent(FixEvent event, long sequence, boolean endOfBatch) throws FieldNotFound 
     {
     	System.out.println(Utils.now() + "EVENT: DisruptorToClients " + event.message.toString() + ", sequence: " + sequence + ", endOfBatch: " + endOfBatch);
-    	System.out.println("acceptor: " + a.getSessions().get(0).toString());
     	
     	quickfix.Message m = event.message;
     	SessionID s = event.session;
     	
     	// Replace the SenderCompID and TargetCompID
     	m.getHeader().setField(new SenderCompID("EIGER_FX"));
-    	m.getHeader().setField(new TargetCompID(s.getSenderCompID()));
+    	m.getHeader().setField(new TargetCompID(s.getTargetCompID()));
     	
-        // Set the correct session for the acceptor to send out to   	
-    	SessionID id = new SessionID("FIX.4.4", "EIGER_FX", s.getSenderCompID());
+        // Set the correct session for the acceptor to send out to
+    	SessionID id = new SessionID(s.getBeginString(), "EIGER_FX", s.getTargetCompID());
     	
-        _session = Session.lookupSession(id);
+    	System.out.println("acceptor: " + id.toString());
 
         // Don't just send on all message types
         
@@ -75,30 +74,36 @@ public class DisruptorToClientsLogic implements EventHandler<FixEvent>
 	        	break;
 	        			
 	        default:
-	            FIXSend(m);
+	        	FIXSend(m, id);
 	            break;		        
 	    }
 		
     	System.out.println("Out DisruptorToClientsLogic.onEvent()");
     }
 
-	public void FIXSend(Message fm)
+	public void FIXSend(Message m, SessionID s)
 	{
-	    // Send the FIX message
+    	// Setup the relevant session
+        _session = Session.lookupSession(s);
+		
+		// Send the FIX message
 	    try
 	    {
 	        if (_session != null)
 	        {
-	            // Logging.LogInfo("SESSION: {0}, INP: {1}", _session.SessionID.ToString(), fm.toString());
-	            System.out.println(Utils.now() + "SEND: client " + fm.toString());
-	            _session.send(fm);
+	        	// Add tag 369 LastMsgSeqNumProcessed
+	        	// m.getHeader().setField(new IntField(369, _session.getExpectedSenderNum() - 1));
+	            
+	        	// Logging.LogInfo("SESSION: {0}, INP: {1}", _session.SessionID.ToString(), fm.toString());
+	            System.out.println(Utils.now() + "SEND: client " + m.toString());
+	            _session.send(m);
 	        }
 	        else
 	        {
 	            // Logging.LogInfo("Can't send message: FIX session not created.");
 	            // Logging.LogInfo(fm.toString());
 	            System.out.println(Utils.now() + "Can't send message: FIX session not created.");
-	            System.out.println(Utils.now() + " " + fm.toString());
+	            System.out.println(Utils.now() + " " + m.toString());
 	        }
 	    }
 	    catch (Exception e)
@@ -106,11 +111,5 @@ public class DisruptorToClientsLogic implements EventHandler<FixEvent>
 			System.out.println(Utils.now() + "ERROR: FIXSend" );
 	    	e.printStackTrace();
 	    }
-    		
-        // then publish direct to buffer
-        // final byte[] toSendBytes = toUpperCase(event.buffer, event.length);
-        // ringbuffer.publishEvent(translator, toSendBytes, event.address);
-    	
-    	// ringbuffer.publishEvent(translator);
     }
 }

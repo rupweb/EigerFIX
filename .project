@@ -21,11 +21,6 @@
 			<location>D:/workspace/EigerFIX/eigerAcceptorFIX.cfg</location>
 		</link>
 		<link>
-			<name>src/eigerfix/eigerFIX.cfg</name>
-			<type>1</type>
-			<location>D:/workspace/EigerFIX/eigerFIX.cfg</location>
-		</link>
-		<link>
 			<name>src/eigerfix/eigerInitiatorFIX.cfg</name>
 			<type>1</type>
 			<location>D:/workspace/EigerFIX/eigerInitiatorFIX.cfg</location>

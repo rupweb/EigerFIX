@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
+	<classpathentry excluding="eigerfix/_Replicator.java|eigerfix/_Log.java" kind="src" path="src"/>
 	<classpathentry kind="lib" path="D:/FIX/disruptor-3.3.2-sources.jar"/>
 	<classpathentry kind="lib" path="D:/FIX/disruptor-3.3.2-javadoc.jar"/>
 	<classpathentry kind="lib" path="D:/FIX/disruptor-3.3.2.jar"/>
@@ -10,5 +10,6 @@
 	<classpathentry kind="lib" path="D:/QuickfixJ/quickfixj 1.5.2/lib/mina-core-1.1.7.jar"/>
 	<classpathentry kind="lib" path="D:/QuickfixJ/quickfixj 1.5.2/lib/slf4j-api-1.6.3.jar"/>
 	<classpathentry kind="lib" path="D:/QuickfixJ/quickfixj 1.5.2/lib/slf4j-jdk14-1.6.3.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

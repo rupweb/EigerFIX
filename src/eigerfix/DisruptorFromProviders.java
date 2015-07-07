@@ -12,7 +12,7 @@ import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 
-public class DisruptorClientSide 
+public class DisruptorFromProviders 
 {    
     private static final int RING_SIZE = 1*1024;
     static final int BYTE_ARRAY_SIZE = 1*1024;
@@ -21,15 +21,15 @@ public class DisruptorClientSide
     ExecutorService executor;
     Thread t;
 
-	public DisruptorClientSide() 
+	public DisruptorFromProviders() 
     {
-    	System.out.println("In DisruptorClientSide()");
+    	System.out.println("In DisruptorFromProviders()");
     }
 
     @SuppressWarnings("unchecked")
-	public void start(Initiator i) throws Exception 
+	public void start(Initiator i, DisruptorToClients d) throws Exception 
     {	
-    	System.out.println("In DisruptorClientSide.start()");
+    	System.out.println("In DisruptorFromProviders.start()");
     	
     	int NUM_EVENT_PROCESSORS = 5;
 
@@ -37,9 +37,9 @@ public class DisruptorClientSide
         
         FixEventFactory factory = new FixEventFactory();
 
-    	System.out.println("Starting Disruptor From Clients");
+    	System.out.println("Starting Disruptor From Providers");
         disruptor = new Disruptor<>(factory, RING_SIZE, executor, ProducerType.SINGLE, new BlockingWaitStrategy());
-        disruptor.handleEventsWith(new Logger(), new Replicator()).then(new DisruptorToProvidersLogic(disruptor, i));
+        disruptor.handleEventsWith(new Log(), new Replicator(), new DisruptorFromProvidersLogic(disruptor, i, d));
         disruptor.start();
 
         // System.out.println("Setup Router");
@@ -48,12 +48,12 @@ public class DisruptorClientSide
         // t = new Thread(new Router(disruptor));
         // t.start();
 
-        System.out.println("DisruptorClientSide listening...");
+        System.out.println("DisruptorFromProviders listening...");
     }
 
     public void stop() throws Exception 
     {
-    	System.out.println("In DisruptorClientSide.stop()");
+    	System.out.println("In DisruptorFromProviders.stop()");
 
         // early exit
         if (t == null) return;
@@ -68,12 +68,12 @@ public class DisruptorClientSide
         executor.shutdown();
         t = null;
         
-    	System.out.println("Out DisruptorClientSide.stop()");
+    	System.out.println("Out DisruptorFromProviders.stop()");
     }
     
 	void Publish(Message m, SessionID s)
     {		
-    	System.out.println(Utils.now() + "PUBLISH: client " + m.toString());
+    	System.out.println(Utils.now() + Utils.ANSI_CYAN + "PUBLISH: DisruptorFromProviders " + m.toString() + Utils.ANSI_RESET);
 		
 		// Get the ring buffer from the Disruptor to be used for publishing.
         RingBuffer<FixEvent> ringBuffer = disruptor.getRingBuffer();
@@ -82,7 +82,7 @@ public class DisruptorClientSide
 
         producer.onData(m, s);
         
-        System.out.println(Utils.now() + "Out DisruptorClientSide.Publish()");
+    	System.out.println(Utils.now() + "Out DisruptorFromProviders.Publish()");
     }
 	
 }
