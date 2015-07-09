@@ -25,7 +25,7 @@ public class Replicator implements EventHandler<FixEvent>
     {
     	System.out.println("In Replicator()");
     	System.out.println("Starting Hazelcast");
-		hz = Hazelcast.newHazelcastInstance();
+		// hz = Hazelcast.newHazelcastInstance();
     	System.out.println("Hazelcast UP");		
     }		
 
@@ -35,7 +35,7 @@ public class Replicator implements EventHandler<FixEvent>
     	System.out.println(Utils.now() + "EVENT: Replication " + event.message.toString());
    	
     	// TODO: for the moment just use text. Maybe JSONify later?
-    	HazelPublisher(event.message.toString());
+    	// HazelPublisher(event.message.toString());
 	}
 	
 	public void HazelPublisher(String event)

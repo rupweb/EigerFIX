@@ -9,6 +9,8 @@ public class FixInitiatorEngine extends MessageCracker implements Application
 	public Session _market_data_session = null;
 	public Session _trading_session = null;
 	private DisruptorFromProviders d;
+	
+	// TODO: if a logout message is sent for a particular provider, just log out that provider
 
 	// Constructor
 	public FixInitiatorEngine(DisruptorFromProviders disruptorFromProviders) throws Exception

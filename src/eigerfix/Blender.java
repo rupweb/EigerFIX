@@ -10,6 +10,7 @@ import quickfix.field.MDEntryType;
 import quickfix.field.MDReqID;
 import quickfix.field.MarketDepth;
 import quickfix.field.OrderQty;
+import quickfix.field.QuoteReqID;
 import quickfix.field.QuoteRequestType;
 import quickfix.field.SettlDate;
 import quickfix.field.SettlType;
@@ -154,9 +155,9 @@ public class Blender
 	{
 		// You can reuse the same market data request id reference
 		// So it's recommended to use the symbol, i.e. EURUSD to avoid duplicate streams
-		Symbol symbol = (Symbol) m.getField(new Symbol());
+		String id = m.get(new QuoteReqID()).getValue();
 		
-		MDReqID mdReqID = new MDReqID(symbol.getValue());
+		MDReqID mdReqID = new MDReqID(id);
 		SubscriptionRequestType subType = new SubscriptionRequestType(SubscriptionRequestType.SNAPSHOT);
 		MarketDepth marketDepth = new MarketDepth(1);
 			
@@ -168,20 +169,20 @@ public class Blender
 
 		// GainGTX requires the Symbol to be in format like: EUR/USD
 		NoRelatedSym symbolGroup = new NoRelatedSym();
-		symbolGroup.set(new Symbol(symbol.getValue()));
-	
+		symbolGroup.set((Symbol) m.getField(new Symbol()));
+			
 		message.addGroup(marketDataEntryGroup);
 		message.addGroup(symbolGroup);
 	            
 		// Give security type for foreign exchange contract
 		// SecurityType securityType = new SecurityType("FOR");            
 		// message.SetField(securityType);
-	                       
-		// Settlement date left blank for SPOT value
-		// FutSettDate futSettDate = new FutSettDate("");
-		// message.SetField(futSettDate);
-	 			
-		// GainGTX custom tag 7820 set to SPOT
+	                       		
+		// SettlDate tag 64 set to blank so it is returned with correct spot date
+		// Group g = m.getGroup(1, 146);	
+		// message.setField(new StringField(64, g.getString(4)));
+		
+		// GainGTX custom tag 7820 set to value date in DDMMYYYY form or blank for SPOT
 		message.setField(new StringField(7820, ""));
 	
 		return message;

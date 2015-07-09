@@ -7,5 +7,10 @@ public class RfqClient
 
 	public String rfq;
 	public String client;
+	public String base_currency;
+	public String terms_currency;
+	public double size;
+	public String value_date;
+	public String account;
 }
 

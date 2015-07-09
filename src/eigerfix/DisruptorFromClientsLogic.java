@@ -8,9 +8,13 @@ import quickfix.MessageCracker;
 import quickfix.SessionID;
 import quickfix.StringField;
 import quickfix.UnsupportedMessageType;
+import quickfix.field.Account;
 import quickfix.field.ClOrdID;
+import quickfix.field.OrderQty;
 import quickfix.field.QuoteReqID;
 import quickfix.field.SenderCompID;
+import quickfix.field.SettlDate;
+import quickfix.field.Symbol;
 import quickfix.fix44.MarketDataRequest;
 import quickfix.fix44.NewOrderSingle;
 
@@ -89,7 +93,13 @@ public class DisruptorFromClientsLogic extends MessageCracker implements EventHa
     	String request = m.getField(new QuoteReqID()).getValue();
     	String client = m.getHeader().getField(new SenderCompID()).getValue();
     	
-    	RfqCache.set_rfq_client(request, client);
+    	String base_currency = m.getGroup(1, 146).getField(new Symbol()).getValue().substring(0, 2);
+    	String terms_currency = m.getGroup(1, 146).getField(new Symbol()).getValue().substring(3, 5);
+    	Double size = m.getGroup(1, 146).getField(new OrderQty()).getValue();
+    	String value_date = m.getGroup(1, 146).getField(new SettlDate()).getValue();
+    	String account = m.getGroup(1, 146).getField(new Account()).getValue();	
+    	
+    	RfqCache.set_rfq(request, client, base_currency, terms_currency, size, value_date, account);
     	
     	m = Blender.RFQ43(m);
     	
@@ -97,27 +107,33 @@ public class DisruptorFromClientsLogic extends MessageCracker implements EventHa
     	PublishForSending(m, s);		        
 	}
     
-    public void onMessage(quickfix.fix44.QuoteRequest m1, SessionID s) throws FieldNotFound
+    public void onMessage(quickfix.fix44.QuoteRequest m, SessionID s) throws FieldNotFound
     { 
 		// If there is only 1 provider and we don't want them to know who our clients are, then:
 		// Save the reference and id in a name value pair lookup table
 		// The lookup table is then read by the FromProvidersLogic to set the correct client again
 		
-		String request = m1.get(new QuoteReqID()).getValue();
-		String client = m1.getHeader().getField(new SenderCompID()).getValue();
+		String request = m.get(new QuoteReqID()).getValue();
+		String client = m.getHeader().getField(new SenderCompID()).getValue();
 		
-		RfqCache.set_rfq_client(request, client);
+    	String base_currency = m.getGroup(1, 146).getField(new Symbol()).getValue().substring(0, 3);
+    	String terms_currency = m.getGroup(1, 146).getField(new Symbol()).getValue().substring(4, 7);
+    	Double size = m.getGroup(1, 146).getField(new OrderQty()).getValue();
+    	String value_date = m.getGroup(1, 146).getField(new SettlDate()).getValue();
+    	String account = m.getGroup(1, 146).getField(new Account()).getValue();		
+		
+    	RfqCache.set_rfq(request, client, base_currency, terms_currency, size, value_date, account);
     	
-    	m1 = Blender.RFQ44(m1);
-    	MarketDataRequest m2 = Blender.RFQtoMD(m1);
+    	m = Blender.RFQ44(m);
+    	MarketDataRequest m1 = Blender.RFQtoMD(m);
     	
 		// GainGTX sender comp id
 		SenderCompID senderCompID = new SenderCompID("demo417_md");
-		m2.getHeader().setField(senderCompID);
+		m1.getHeader().setField(senderCompID);
     	
     	// Pass off to be sent    	
-    	PublishForSending(m1, s);
-    	PublishForSending(m2, s);   	
+    	PublishForSending(m, s);
+    	PublishForSending(m1, s);   	
 	}
     
     public void onMessage(NewOrderSingle m, SessionID s) throws FieldNotFound
@@ -134,11 +150,30 @@ public class DisruptorFromClientsLogic extends MessageCracker implements EventHa
     	// Change tag 303 from 2 to 102
     	m.setField(new StringField(303, "2"));
     	
+    	// TODO: identify whether this is a previously quoted or at market order
+    	// For RBS a previously quoted order has no price, just a quote id
+    	// So there's no need to call the trader to cover the order price
+    	
+    	/* Cover the order price with the trader
+    	Order o = new Order();
+    	o.bid = Double.parseDouble(m.getField(new StringField(44)).getValue());
+    	o.offer = Double.parseDouble(m.getField(new StringField(44)).getValue());
+    	o = Trader.cover(o);
+    	
+    	// Update the order with the covered price
+    	m.setField(new StringField(44, String.valueOf(o.bid)));
+    	*/
+    	
     	// Pass off to be sent    	
     	PublishForSending(m, s);		        
 	}    
     
     public void onMessage(quickfix.fix44.Reject m, SessionID s)
+    { 
+    	// rejects from an initiator are sent to the FIX monitor. That's already handled by the disruptor log event... right?
+	}
+    
+    public void onMessage(quickfix.fix44.BusinessMessageReject m, SessionID s)
     { 
     	// rejects from an initiator are sent to the FIX monitor. That's already handled by the disruptor log event... right?
 	}

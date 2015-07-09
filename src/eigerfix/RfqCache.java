@@ -11,14 +11,28 @@ public class RfqCache
 	static ArrayList<FixClient> fc = new ArrayList<FixClient>();	
 		
 	// Set the client for an rfq
-	public static void set_rfq_client(String request, String client)	
+	public static void set_rfq(String request, String client, String base_currency, 
+			String terms_currency, Double size, String value_date, String account)	
 	{
 		RfqClient new_rfq = new RfqClient();
 		new_rfq.rfq = request;
 		new_rfq.client = client;
+		new_rfq.base_currency = base_currency;
+		new_rfq.terms_currency = terms_currency;
+		new_rfq.size = size;
+		new_rfq.value_date = value_date;
+		new_rfq.account = account;
 			
 		rc.add(new_rfq);
-    	System.out.println("set_rfq_client added: " + request + ", " + client);
+		
+    	System.out.println("set_rfq_client add: " + 
+		"rfq: " + request + ", " +
+    	"client: "	+ client + ", " +
+		"base_currency: " + base_currency + ", " + 	
+		"terms_currency: " + terms_currency + ", " + 			
+		"size: " + size + ", " + 			
+		"value_date: " + value_date + ", " + 			
+		"account: " + account);
 	}
 	
 	// Update the list for an rfq or set a new one
@@ -71,7 +85,7 @@ public class RfqCache
 	    	e.printStackTrace();
 		}
 		
-		return "ERROR";
+		return "UNKNOWN";
 	}
 	
 	// Get the client for an rfq
@@ -84,7 +98,15 @@ public class RfqCache
 			{
 				if (rc.get(i).rfq.equals(request))
 				{
-			    	System.out.println("get_rfq_client returns: " + request + ", " + rc.get(i).client);
+			    	System.out.println("get_rfq_client record " + 
+			    			"rfq: " + rc.get(i).rfq + ", " +  
+			    	    	"client: "	+ rc.get(i).client + ", " +
+			    			"base_currency: " + rc.get(i).base_currency + ", " + 	
+			    			"terms_currency: " + rc.get(i).terms_currency + ", " + 			
+			    			"size: " + rc.get(i).size + ", " + 			
+			    			"value_date: " + rc.get(i).value_date + ", " + 			
+			    			"account: " + rc.get(i).account);				    			
+	    	
 					return rc.get(i).client;
 				}
 			};
@@ -95,8 +117,40 @@ public class RfqCache
 	    	e.printStackTrace();
 		}
 			
-		return "ERROR";
+		return "UNKNOWN";
 	}
+	
+	// Get the client for an rfq
+	public static String get_rfq_value_date(String request)
+	{
+		// search the list for the rfq_id
+		try
+		{
+			for (int i=0; i < rc.size(); i++)
+			{
+				if (rc.get(i).rfq.equals(request))
+				{
+			    	System.out.println("get_rfq_value_date record " + 
+			    			"rfq: " + rc.get(i).rfq + ", " +  
+			    	    	"client: "	+ rc.get(i).client + ", " +
+			    			"base_currency: " + rc.get(i).base_currency + ", " + 	
+			    			"terms_currency: " + rc.get(i).terms_currency + ", " + 			
+			    			"size: " + rc.get(i).size + ", " + 			
+			    			"value_date: " + rc.get(i).value_date + ", " + 			
+			    			"account: " + rc.get(i).account);				    			
+	    	
+					return rc.get(i).value_date;
+				}
+			};
+		}
+		catch (Exception e)
+		{
+			System.out.println(Utils.now() + "ERROR: aaargh" );
+	    	e.printStackTrace();
+		}
+			
+		return "UNKNOWN";
+	}	
 
 	// Set the client for an order
 	public static void set_order_client(String order, String client) 
@@ -119,7 +173,7 @@ public class RfqCache
 			{
 				if (oc.get(i).order.equals(order))
 				{
-					System.out.println("get_rfq_client returns: " + order + ", " + oc.get(i).client);
+					System.out.println("get_order_client returns: " + order + ", " + oc.get(i).client);
 					return oc.get(i).client;
 				}
 			};
@@ -130,7 +184,7 @@ public class RfqCache
 	    	e.printStackTrace();
 		}
 		
-		return "ERROR";
+		return "UNKNOWN";
 	}
 
 	public static void set_fix_client(int seq, String client)
@@ -164,6 +218,6 @@ public class RfqCache
 	    	e.printStackTrace();
 		}
 		
-		return "ERROR";
+		return "UNKNOWN";
 	}
 }

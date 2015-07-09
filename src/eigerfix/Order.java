@@ -1,6 +1,6 @@
 package eigerfix;
 
-public class Price 
+public class Order 
 {
 	String rfq_id;
 	String quote_id;

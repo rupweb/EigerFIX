@@ -373,7 +373,7 @@
       <field name="RFQReqID" required="N" />
       <field name="QuoteRequestRejectReason" required="Y" />
       <group name="NoRelatedSym" required="N">
-        <component name="Instrument" required="Y" />
+        <component name="Instrument" required="N" />
         <component name="FinancingDetails" required="N" />
         <group name="NoUnderlyings" required="N">
           <component name="UnderlyingInstrument" required="N" />
@@ -520,8 +520,8 @@
       <field name="EncodedText" required="N" />
     </message>
     <message name="QuoteCancel" msgtype="Z" msgcat="app">
-      <field name="QuoteReqID" required="N" />
-      <field name="QuoteID" required="Y" />
+      <field name="QuoteReqID" required="Y" />
+      <field name="QuoteID" required="N" />
       <field name="QuoteCancelType" required="Y" />
       <field name="QuoteResponseLevel" required="N" />
       <component name="Parties" required="N" />
@@ -749,24 +749,26 @@
       <field name="MDEntryType" required="Y" />
     </group>
     <group name="NoRelatedSym" required="Y">
-      <component name="Instrument" required="Y" />
+      <component name="Instrument" required="Y" /> 
       <group name="NoUnderlyings" required="N">
         <component name="UnderlyingInstrument" required="N" />
       </group>
       <group name="NoLegs" required="N">
         <component name="InstrumentLeg" required="N" />
-      </group>
+	</group>
+	<field name="SettlDate" required="N" />
     </group>
     <group name="NoTradingSessions" required="N">
       <field name="TradingSessionID" required="N" />
       <field name="TradingSessionSubID" required="N" />
-    </group>
+    </group> 
     <field name="ApplQueueAction" required="N" />
     <field name="ApplQueueMax" required="N" />
   </message>
   <message name="MarketDataSnapshotFullRefresh" msgtype="W" msgcat="app">
     <field name="MDReqID" required="N" />
     <component name="Instrument" required="Y" />
+    <field name="SettlDate" required="N" />
     <group name="NoUnderlyings" required="N">
       <component name="UnderlyingInstrument" required="N" />
     </group>
@@ -829,6 +831,7 @@
       <group name="NoLegs" required="N">
         <component name="InstrumentLeg" required="N" />
       </group>
+      <field name="SettlDate" required="N" />
       <field name="FinancialStatus" required="N" />
       <field name="CorporateAction" required="N" />
       <field name="MDEntryPx" required="N" />
@@ -1148,7 +1151,7 @@
       <field name="TradingSessionSubID" required="N" />
     </group>
     <field name="ProcessCode" required="N" />
-    <component name="Instrument" required="Y" />
+    <component name="Instrument" required="N" />
     <component name="FinancingDetails" required="N" />
     <group name="NoUnderlyings" required="N">
       <component name="UnderlyingInstrument" required="N" />
@@ -1201,6 +1204,7 @@
     <field name="MoneyLaunderingStatus" required="N" />
     <field name="RegistID" required="N" />
     <field name="Designation" required="N" />
+    <field name="QuoteRequestType" required="N" />
   </message>
   <message name="ExecutionReport" msgtype="8" msgcat="app">
     <field name="OrderID" required="Y" />
